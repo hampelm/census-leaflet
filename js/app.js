@@ -5,24 +5,27 @@ $(function(){
   map.addLayer(baseLayer);
 
 
-  var bounds = map.getBounds();
-  var esriBounds =  [
-                      [bounds._southWest.lng, bounds._southWest.lat],
-                      [bounds._northEast.lng, bounds._northEast.lat]
-                   ];
-  console.log(bounds);
-  console.log(esriBounds);
 
-  api.getObjectsInBBoxFromESRI(esriBounds, {
-    endpoint: 'http://tigerweb.geo.census.gov/arcgis/rest/services/Tracts_Blocks/MapServer/2/',
-    name: ['NAME'],
-    id: 'BLOCK'
-  }, function(error, data){
-    console.log(data);
-    var blocks = L.geoJson(data);
-    map.addLayer(blocks);
+  map.on('moveend', function(){
+    var bounds = map.getBounds();
+
+    var esriBounds =  [
+                        [bounds._southWest.lng, bounds._southWest.lat],
+                        [bounds._northEast.lng, bounds._northEast.lat]
+                     ];
+
+    api.getObjectsInBBoxFromESRI(esriBounds, {
+      endpoint: 'http://tigerweb.geo.census.gov/arcgis/rest/services/Tracts_Blocks/MapServer/2/',
+      name: ['NAME'],
+      id: 'BLOCK'
+    }, function(error, data){
+      console.log(data);
+      var blocks = L.geoJson(data);
+      map.addLayer(blocks);
+    }.bind(this));
+
+
   }.bind(this));
-
 });
 
 
@@ -120,6 +123,7 @@ api.getObjectsInBBoxFromESRI = function(bbox, options, callback) {
     success: function (data){
       console.log("data", data);
       if(data) {
+
         // Create a GeoJSON FeatureCollection from the ESRI-style data.
         var featureCollection = {
           type: 'FeatureCollection'
